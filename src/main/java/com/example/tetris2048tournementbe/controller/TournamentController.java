@@ -1,25 +1,28 @@
 package com.example.tetris2048tournementbe.controller;
 
+import com.example.tetris2048tournementbe.dto.TournamentRequest;
 import com.example.tetris2048tournementbe.model.Tournament;
-import com.example.tetris2048tournementbe.repo.TournamentRepo;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.tetris2048tournementbe.service.TournamentService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/tournaments")
+@RequestMapping("/tournaments")
+@RequiredArgsConstructor
 public class TournamentController {
-    @Autowired
-    private TournamentRepo tournamentRepo;
 
-    @GetMapping
+    private final TournamentService tournamentService;
+
+    @GetMapping("/all")
     public List<Tournament> getAllTournaments() {
-        return tournamentRepo.findAll();
+        return  tournamentService.getAllTournaments();
     }
 
-    @GetMapping("/{id}")
-    public Tournament getTournamentById(@PathVariable Long id) {
-        return tournamentRepo.findById(id).orElse(null);
+    @PostMapping("/create")
+    public void createTournament(@RequestBody TournamentRequest tournamentRequest) {
+        tournamentService.createTournament(tournamentRequest);
+        System.out.println("adsa");
     }
 }
 

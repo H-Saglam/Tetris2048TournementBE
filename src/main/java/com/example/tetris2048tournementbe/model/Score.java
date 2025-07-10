@@ -26,6 +26,5 @@ public class Score {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // ...getters, setters...
 }
 

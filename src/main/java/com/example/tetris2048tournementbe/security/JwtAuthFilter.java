@@ -6,9 +6,12 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -18,6 +21,7 @@ import java.io.IOException;
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
     private final JwtService jwtService;
     private final UserService userService;
 
@@ -31,23 +35,53 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        String authorizationHeader = request.getHeader("Authorization");
-        String token = null;
-        String username = null;
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            token = authorizationHeader.substring(7);
-            username = jwtService.extractUser(token);
+        final String authorizationHeader = request.getHeader("Authorization");
+        final String requestPath = request.getServletPath();
+
+        // Auth endpointleri için token doğrulaması yapmadan geçiş
+        if (requestPath.startsWith("/auth/") && !requestPath.equals("/auth/validate")) {
+            filterChain.doFilter(request, response);
+            return;
         }
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userService.loadUserByUsername(username);
-            if (jwtService.validateToken(token, userDetails)) {
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+
+        try {
+            String username = null;
+            String token = null;
+
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                token = authorizationHeader.substring(7);
+                try {
+                    username = jwtService.extractUser(token);
+                    logger.debug("JWT işleme alındı, kullanıcı: {}", username);
+                } catch (Exception e) {
+                    logger.error("JWT işlenirken hata oluştu: {}", e.getMessage());
+                }
+            } else {
+                logger.debug("Authorization header eksik veya 'Bearer ' ile başlamıyor");
             }
+
+            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                try {
+                    UserDetails userDetails = userService.loadUserByUsername(username);
+                    if (jwtService.validateToken(token, userDetails)) {
+                        UsernamePasswordAuthenticationToken authToken =
+                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                        logger.debug("Authentication başarılı, kullanıcı: {}", username);
+                    } else {
+                        logger.debug("Token geçerli değil: {}", token);
+                    }
+                } catch (UsernameNotFoundException e) {
+                    logger.error("Kullanıcı bulunamadı: {}", username);
+                }
+            }
+
+            filterChain.doFilter(request, response);
+
+        } catch (Exception e) {
+            logger.error("JWT filter işlenirken beklenmeyen hata: {}", e.getMessage());
+            filterChain.doFilter(request, response);
         }
-        filterChain.doFilter(request, response);
     }
 }
-

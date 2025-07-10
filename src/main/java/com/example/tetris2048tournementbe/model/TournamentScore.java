@@ -31,6 +31,5 @@ public class TournamentScore {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // ...getters, setters...
 }
 

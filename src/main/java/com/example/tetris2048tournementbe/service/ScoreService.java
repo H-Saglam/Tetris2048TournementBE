@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -29,5 +30,15 @@ public class ScoreService {
         newScore.setUser(user);
         newScore.setCreatedAt(LocalDateTime.now());
         scoreRepo.save(newScore);
+    }
+
+    public List<Score> getScoresByUsername(String username) {
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
+        return scoreRepo.findByUserOrderByCreatedAtDesc(user);
+    }
+
+    public List<Score> getTop10Scores() {
+        return scoreRepo.findTop10ByOrderByScoreDesc();
     }
 }

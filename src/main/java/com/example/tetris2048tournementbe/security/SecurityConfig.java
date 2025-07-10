@@ -17,8 +17,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.http.HttpStatus;
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -32,7 +30,6 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-    private final UserRepo userRepo;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -41,11 +38,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(x ->
                         x.requestMatchers("/auth/**").permitAll()
-                )
-                .authorizeHttpRequests(x ->
-                        x.requestMatchers("/auth/user").hasRole("USER")
-                                .requestMatchers("/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/scores/**").hasAnyRole("USER","ADMIN")
+                          .requestMatchers("/auth/user").hasRole("USER")
+                          .requestMatchers("/admin/**").hasRole("ADMIN")
+                          .requestMatchers("/scores/**").hasAnyRole("USER","ADMIN")
+                          .requestMatchers("/tournaments/**").hasAnyRole("USER","ADMIN")
+                          .anyRequest().authenticated()
                 )
                 .sessionManagement(x -> x.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(x -> x.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))

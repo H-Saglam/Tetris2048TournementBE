@@ -5,7 +5,6 @@ import com.example.tetris2048tournementbe.model.Score;
 import com.example.tetris2048tournementbe.repo.ScoreRepo;
 import com.example.tetris2048tournementbe.service.ScoreService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -13,7 +12,6 @@ import java.util.List;
 @RequestMapping("/scores")
 @RequiredArgsConstructor
 public class ScoreController {
-    private final ScoreRepo scoreRepo;
     private final ScoreService scoreService;
 
     @PostMapping("/create")
@@ -24,13 +22,14 @@ public class ScoreController {
         return "Score created successfully";
     }
 
-    @GetMapping
-    public List<Score> getAllScores() {
-        return scoreRepo.findAll();
+
+    @GetMapping("/user/{username}")
+    public List<Score> getScoresByUsername(@PathVariable String username) {
+        return scoreService.getScoresByUsername(username);
     }
 
-    @GetMapping("/{id}")
-    public Score getScoreById(@PathVariable Long id) {
-        return scoreRepo.findById(id).orElse(null);
+    @GetMapping("/top10")
+    public List<Score> getTop10Scores() {
+        return scoreService.getTop10Scores();
     }
 }
