@@ -38,6 +38,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(x ->
                         x.requestMatchers("/auth/**").permitAll()
+                          .requestMatchers("/notifications/**").permitAll() // Düzeltildi: /api/notifications/** olarak güncellendi
+                          .requestMatchers("/ws/**").permitAll() // WebSocket endpoint'ine herkesin erişimine izin ver
                           .requestMatchers("/auth/user").hasRole("USER")
                           .requestMatchers("/admin/**").hasRole("ADMIN")
                           .requestMatchers("/scores/**").hasAnyRole("USER","ADMIN")

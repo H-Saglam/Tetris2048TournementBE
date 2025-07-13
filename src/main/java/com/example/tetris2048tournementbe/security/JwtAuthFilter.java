@@ -38,8 +38,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String authorizationHeader = request.getHeader("Authorization");
         final String requestPath = request.getServletPath();
 
-        // Auth endpointleri için token doğrulaması yapmadan geçiş
-        if (requestPath.startsWith("/auth/") && !requestPath.equals("/auth/validate")) {
+        // Güvenlik kontrolünden muaf olan endpoint'ler
+        if (requestPath.startsWith("/auth/") && !requestPath.equals("/auth/validate") ||
+            requestPath.startsWith("/ws") ||
+            requestPath.startsWith("/notifications/")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -57,7 +59,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     logger.error("JWT işlenirken hata oluştu: {}", e.getMessage());
                 }
             } else {
-                logger.debug("Authorization header eksik veya 'Bearer ' ile başlamıyor");
+                logger.debug("Authorization header eksik veya 'Bearer ' ile başlamıyor. Endpoint: {}", requestPath);
             }
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -68,9 +70,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
-                        logger.debug("Authentication başarılı, kullanıcı: {}", username);
+                        logger.debug("Authentication başarılı, kullanıcı: {}. Endpoint: {}", username, requestPath);
                     } else {
-                        logger.debug("Token geçerli değil: {}", token);
+                        logger.debug("Token geçerli değil: {}. Endpoint: {}", token, requestPath);
                     }
                 } catch (UsernameNotFoundException e) {
                     logger.error("Kullanıcı bulunamadı: {}", username);
