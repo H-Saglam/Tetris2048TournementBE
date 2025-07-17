@@ -20,7 +20,7 @@ public class NotificationService {
         messagingTemplate.convertAndSend("/topic/notifications", notification);
     }
 
-    public void sendTestNotification() {
-        sendNotificationToAll("Bu bir test bildirimidir!", "info");
+    public void tournamentCreatedNotification() {
+        sendNotificationToAll("turnuva oluşturuldu", "info");
     }
 }

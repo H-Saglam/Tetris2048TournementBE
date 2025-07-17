@@ -16,11 +16,11 @@ public class NotificationController {
     @Autowired
     private NotificationService notificationService;
 
-    @PostMapping("/send-test")
+    @PostMapping("/tournament-created")
     public ResponseEntity<String> sendTestNotification() {
         logger.info("NOTIFICATION_ENDPOINT_CALLED: Test notification endpoint called");
         System.out.println("Sending test notification to all users...");
-        notificationService.sendTestNotification();
+        notificationService.tournamentCreatedNotification();
         return ResponseEntity.ok("Test notification sent to all users!");
     }
 
