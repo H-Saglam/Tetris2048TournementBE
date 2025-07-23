@@ -1,0 +1,14 @@
+# Simple Dockerfile for Spring Boot application
+
+FROM eclipse-temurin:21-jre
+
+WORKDIR /app
+
+# Copy the built JAR file
+COPY target/Tetris2048TournementBE-0.0.1-SNAPSHOT.jar app.jar
+
+# Expose port
+EXPOSE 8080
+
+# Run the application
+CMD ["java", "-jar", "app.jar"]
