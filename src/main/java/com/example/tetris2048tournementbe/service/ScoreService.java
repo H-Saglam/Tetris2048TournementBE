@@ -7,6 +7,7 @@ import com.example.tetris2048tournementbe.model.User;
 import com.example.tetris2048tournementbe.repo.ScoreRepo;
 import com.example.tetris2048tournementbe.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,13 +16,15 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class ScoreService {
-
-    private final UserRepo userRepo;
-    private final JwtService jwtService;
-    private final ScoreRepo scoreRepo;
+    @Autowired
+    private  UserRepo userRepo;
+    @Autowired
+    private  JwtService jwtService;
+    @Autowired
+    private  ScoreRepo scoreRepo;
 
     public void createScore(ScoreRequest score) {
-        String username = jwtService.extractUser(jwtService.getToken());
+        String username = jwtService.getUsernameFromJwt();
         User user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
 

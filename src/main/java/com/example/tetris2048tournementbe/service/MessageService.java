@@ -9,6 +9,7 @@ import com.example.tetris2048tournementbe.repo.MessageRepo;
 import com.example.tetris2048tournementbe.repo.TournamentRepo;
 import com.example.tetris2048tournementbe.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -19,15 +20,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MessageService {
 
-    private final UserRepo userRepo;
-    private final JwtService jwtService;
-    private final MessageRepo messageRepo;
-    private final TournamentRepo tournamentRepo;
-    private final SimpMessagingTemplate messagingTemplate;
+    @Autowired
+    private  UserRepo userRepo;
+    @Autowired
+    private  JwtService jwtService;
+    @Autowired
+    private  MessageRepo messageRepo;
+    @Autowired
+    private  TournamentRepo tournamentRepo;
+    @Autowired
+    private  SimpMessagingTemplate messagingTemplate;
 
 
     public void sendMessage(MessageRequest messageRequest, Long tournamentId) {
-        String username = jwtService.extractUser(jwtService.getToken());
+
+        String username = jwtService.getUsernameFromJwt();
         User user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));
         Tournament tournament = tournamentRepo.findById(tournamentId)

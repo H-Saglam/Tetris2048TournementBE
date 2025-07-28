@@ -7,6 +7,7 @@ import com.example.tetris2048tournementbe.service.JwtService;
 import com.example.tetris2048tournementbe.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,8 +18,10 @@ import java.util.Map;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final AuthService authService;
-    private final JwtService jwtService;
+    @Autowired
+    private  AuthService authService;
+    @Autowired
+    private  JwtService jwtService;
 
     @PostMapping("/register")
     public ResponseEntity<String> addUser(@RequestBody Map<String, String> request) {

@@ -5,6 +5,7 @@ import com.example.tetris2048tournementbe.enums.RoleEnum;
 import com.example.tetris2048tournementbe.model.User;
 import com.example.tetris2048tournementbe.repo.UserRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,12 +21,17 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Service
 public class AuthService {
-    private final PasswordEncoder passwordEncoder;
-    private final UserRepo userRepository;
-    private final Map<String, User> tokenStorage = new HashMap<>();
-    private final UserService userService;
-    private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
+    @Autowired
+    private  PasswordEncoder passwordEncoder;
+    @Autowired
+    private  UserRepo userRepository;
+    private  Map<String, User> tokenStorage = new HashMap<>();
+    @Autowired
+    private  UserService userService;
+    @Autowired
+    private  JwtService jwtService;
+    @Autowired
+    private  AuthenticationManager authenticationManager;
 
     public void createUser(String username, String password) {
         userRepository.findAll().stream()

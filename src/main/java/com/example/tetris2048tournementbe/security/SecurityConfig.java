@@ -3,6 +3,7 @@ package com.example.tetris2048tournementbe.security;
 import com.example.tetris2048tournementbe.repo.UserRepo;
 import com.example.tetris2048tournementbe.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,10 +27,12 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 @EnableMethodSecurity
 public class SecurityConfig {
-
-    private final JwtAuthFilter jwtAuthFilter;
-    private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
+    @Autowired
+    private  JwtAuthFilter jwtAuthFilter;
+    @Autowired
+    private  UserService userService;
+    @Autowired
+    private  PasswordEncoder passwordEncoder;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
