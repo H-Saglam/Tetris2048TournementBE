@@ -43,6 +43,7 @@ public class SecurityConfig {
                           .requestMatchers("/scores/**").hasAnyRole("USER","ADMIN")
                           .requestMatchers("/tournaments/**").hasAnyRole("USER","ADMIN")
                           .requestMatchers("/tournament-scores/**").hasAnyRole("USER","ADMIN")
+                            .requestMatchers("/messages/**").hasAnyRole("USER","ADMIN")
                           .anyRequest().authenticated()
                 )
                 .sessionManagement(x -> x.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -20,7 +20,8 @@ public class TournamentService {
     private final JwtService jwtService;
 
     public List<Tournament> getAllTournaments() {
-        return tournamentRepo.findAll();
+        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+        return tournamentRepo.findTournamentsCreatedInLastHour(oneHourAgo);
     }
 
     public void createTournament(TournamentRequest tournamentRequest) {
