@@ -1,150 +1,309 @@
-# 🎮 Tetris2048 Tournament - Backend API
+# 🎮 Tetris 2048 Tournament - Backend API
 
 ![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.3-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
-![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=json-web-tokens&logoColor=white)
-![WebSocket](https://img.shields.io/badge/WebSocket-010101?style=for-the-badge&logo=socket.io&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.3-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-Authentication-000000?style=for-the-badge&logo=json-web-tokens&logoColor=white)
+![WebSocket](https://img.shields.io/badge/WebSocket-STOMP-010101?style=for-the-badge&logo=socket.io&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-> A robust Spring Boot backend service for the Tetris2048 Tournament platform, featuring JWT authentication, real-time WebSocket notifications, and comprehensive tournament management APIs.
+> A robust RESTful API backend for the Tetris 2048 Tournament platform, featuring JWT authentication, real-time WebSocket notifications, and comprehensive tournament management.
 
-## ��� Project Overview
+## 📋 Project Overview
 
-This is the **Backend API** component of the Tetris2048 Tournament system - a competitive gaming platform that combines Tetris and 2048 game mechanics. The backend provides:
+This is the backend service for the **Tetris 2048 Tournament** platform - a full-stack web application that combines the classic games Tetris and 2048 with a competitive tournament system. The backend provides:
 
 - **Secure Authentication** with JWT tokens
 - **Real-time Notifications** via WebSocket/STOMP
-- **Tournament Management** with scoring and leaderboards
-- **RESTful API** for all game operations
+- **Tournament Management** with leaderboards
+- **Score Tracking** and ranking systems
+- **Role-based Access Control** (USER/ADMIN)
 
-### 🎯 Key Features
-
-| Feature | Description |
-|---------|-------------|
-| **JWT Authentication** | Secure stateless authentication with token-based authorization |
-| **Role-Based Access Control** | USER and ADMIN roles with endpoint-level security |
-| **Real-time Notifications** | WebSocket (STOMP) for live tournament updates |
-| **Tournament System** | Create and manage competitive tournaments |
-| **Leaderboard** | Global and tournament-specific score rankings |
-| **Score Tracking** | Persistent score history per user |
-
-## 🏗️ Architecture
+### 🏗️ System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                      Frontend (Vue.js Client)                       │
+│                         Vue.js Frontend                              │
+│                    (Tetris2048TournamentFE)                         │
+└─────────────────────────────┬───────────────────────────────────────┘
+                              │ HTTP / WebSocket
+                              ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Spring Boot Backend (This Repo)                   │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐ │
+│  │    Auth     │  │ Tournament  │  │   Score     │  │   User     │ │
+│  │ Controller  │  │ Controller  │  │ Controller  │  │ Controller │ │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └─────┬──────┘ │
+│         │                │                │                │        │
+│  ┌──────┴────────────────┴────────────────┴────────────────┴──────┐ │
+│  │                        Service Layer                           │ │
+│  │  AuthService │ TournamentService │ ScoreService │ JwtService   │ │
+│  └──────────────────────────┬─────────────────────────────────────┘ │
+│                             │                                        │
+│  ┌──────────────────────────┴─────────────────────────────────────┐ │
+│  │                    Security Layer (JWT)                         │ │
+│  │           JwtAuthFilter │ SecurityConfig                        │ │
+│  └─────────────────────────────────────────────────────────────────┘ │
+│                             │                                        │
+│  ┌──────────────────────────┴─────────────────────────────────────┐ │
+│  │                WebSocket (STOMP) Notifications                  │ │
+│  │                    /topic/notifications                         │ │
+│  └─────────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────┬───────────────────────────────────────┘
                               │
-              ┌───────────────┼───────────────┐
-              │ REST API      │ WebSocket     │
-              │ (Port 8080)   │ (/ws)         │
-              ▼               ▼               │
+                              ▼
 ┌─────────────────────────────────────────────────────────────────────┐
-│                     Spring Boot Application                          │
-│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌────────────┐ │
-│  │ Controllers  │ │  Services    │ │  Security    │ │ WebSocket  │ │
-│  │              │ │              │ │  (JWT)       │ │  Handler   │ │
-│  └──────────────┘ └──────────────┘ └──────────────┘ └────────────┘ │
-│                              │                                       │
-│                    ┌─────────┴─────────┐                            │
-│                    │   JPA Repository  │                            │
-│                    └─────────┬─────────┘                            │
-└──────────────────────────────┼──────────────────────────────────────┘
-                               ▼
-                    ┌──────────────────────┐
-                    │   PostgreSQL / H2    │
-                    │      Database        │
-                    └──────────────────────┘
+│                      PostgreSQL Database                             │
+│    ┌──────────┐  ┌─────────────┐  ┌────────────────────┐           │
+│    │  users   │  │ tournaments │  │ tournament_scores  │           │
+│    └──────────┘  └─────────────┘  └────────────────────┘           │
+│    ┌──────────┐                                                     │
+│    │  scores  │                                                     │
+│    └──────────┘                                                     │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ## 🛠️ Tech Stack
 
-### Core Framework
-- **Java 21** - Latest LTS version
-- **Spring Boot 3.5.3** - Application framework
-- **Spring Security** - Authentication & authorization
-- **Spring Data JPA** - Data persistence
-- **Spring WebSocket** - Real-time communication
-
-### Security
-- **JWT (jjwt 0.11.5)** - Token-based authentication
-- **BCrypt** - Password hashing
-- **Stateless Sessions** - RESTful security
-
-### Database
-- **PostgreSQL** - Production database
-- **H2** - Development/testing database
-- **Hibernate** - ORM framework
-
-### Build & DevOps
-- **Maven** - Dependency management
-- **Docker** - Containerization
-- **Lombok** - Boilerplate reduction
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Java** | 21 | Programming Language |
+| **Spring Boot** | 3.5.3 | Application Framework |
+| **Spring Security** | 6.x | Authentication & Authorization |
+| **Spring Data JPA** | 3.x | Database ORM |
+| **Spring WebSocket** | 6.x | Real-time Communication |
+| **PostgreSQL** | 15 | Primary Database |
+| **H2 Database** | - | Development/Testing |
+| **JWT (jjwt)** | 0.11.5 | Token-based Authentication |
+| **Lombok** | - | Boilerplate Reduction |
+| **Docker** | - | Containerization |
 
 ## 📁 Project Structure
 
 ```
 Tetris2048TournementBE/
-├── src/main/java/com/example/tetris2048tournementbe/
-│   ├── 📄 Tetris2048TournementBeApplication.java  # Main entry point
+├── 📂 src/main/java/com/example/tetris2048tournementbe/
+│   ├── 📄 Tetris2048TournementBeApplication.java   # Main Application
 │   │
-│   ├── 📂 config/                    # Configuration classes
-│   │   ├── WebConfig.java            # CORS configuration
-│   │   └── WebSocketConfig.java      # WebSocket/STOMP setup
+│   ├── 📂 config/                    # Configuration Classes
+│   │   ├── WebConfig.java           # CORS Configuration
+│   │   └── WebSocketConfig.java     # WebSocket/STOMP Config
 │   │
-│   ├── 📂 controller/                # REST API endpoints
-│   │   ├── AuthController.java       # Authentication endpoints
-│   │   ├── UserController.java       # User management
-│   │   ├── TournamentController.java # Tournament CRUD
-│   │   ├── ScoreController.java      # Score submission
-│   │   ├── TournamentScoreController.java  # Tournament scores
-│   │   └── NotificationController.java     # Push notifications
+│   ├── 📂 controller/                # REST Controllers
+│   │   ├── AuthController.java      # Login, Register, Validate
+│   │   ├── UserController.java      # User Management
+│   │   ├── ScoreController.java     # Score CRUD
+│   │   ├── TournamentController.java        # Tournament CRUD
+│   │   ├── TournamentScoreController.java   # Tournament Scores
+│   │   └── NotificationController.java      # Push Notifications
 │   │
-│   ├── 📂 security/                  # Security components
-│   │   ├── SecurityConfig.java       # Security filter chain
-│   │   └── JwtAuthFilter.java        # JWT authentication filter
-│   │
-│   ├── 📂 service/                   # Business logic
-│   │   ├── AuthService.java          # Authentication logic
-│   │   ├── JwtService.java           # JWT generation/validation
-│   │   ├── UserService.java          # User operations
-│   │   ├── TournamentService.java    # Tournament logic
-│   │   ├── ScoreService.java         # Score management
+│   ├── 📂 service/                   # Business Logic
+│   │   ├── AuthService.java         # Authentication Logic
+│   │   ├── UserService.java         # User Management
+│   │   ├── JwtService.java          # JWT Token Operations
+│   │   ├── ScoreService.java        # Score Management
+│   │   ├── TournamentService.java   # Tournament Logic
 │   │   ├── TournamentScoreService.java
-│   │   └── NotificationService.java  # WebSocket notifications
+│   │   └── NotificationService.java # WebSocket Notifications
 │   │
-│   ├── 📂 model/                     # JPA Entities
-│   │   ├── User.java                 # User entity
-│   │   ├── Tournament.java           # Tournament entity
-│   │   ├── Score.java                # Score entity
-│   │   ├── TournamentScore.java      # Tournament-specific scores
-│   │   └── Notification.java         # Notification model
+│   ├── 📂 security/                  # Security Layer
+│   │   ├── SecurityConfig.java      # Spring Security Config
+│   │   └── JwtAuthFilter.java       # JWT Authentication Filter
+│   │
+│   ├── 📂 model/                     # Entity Classes
+│   │   ├── User.java                # User Entity (implements UserDetails)
+│   │   ├── Score.java               # Score Entity
+│   │   ├── Tournament.java          # Tournament Entity
+│   │   ├── TournamentScore.java     # Tournament Score Entity
+│   │   └── Notification.java        # Notification Model
 │   │
 │   ├── 📂 repo/                      # JPA Repositories
 │   │   ├── UserRepo.java
-│   │   ├── TournamentRepo.java
 │   │   ├── ScoreRepo.java
+│   │   ├── TournamentRepo.java
 │   │   └── TournamentScoreRepo.java
 │   │
 │   ├── 📂 dto/                       # Data Transfer Objects
 │   │   ├── AuthRequest.java
-│   │   ├── TournamentRequest.java
 │   │   ├── ScoreRequest.java
+│   │   ├── TournamentRequest.java
 │   │   └── TournamentScoreRequest.java
 │   │
-│   ├── 📂 enums/                     # Enumerations
-│   │   └── RoleEnum.java             # USER, ADMIN roles
+│   ├── 📂 enums/
+│   │   └── RoleEnum.java            # USER, ADMIN roles
 │   │
-│   ├── 📂 exception/                 # Custom exceptions
+│   ├── 📂 exception/
 │   │   └── UserNotFoundException.java
 │   │
-│   └── 📂 handler/                   # Event handlers
-│       └── WebSocketEventListener.java
+│   └── 📂 handler/
+│       └── WebSocketEventListener.java  # WebSocket Events
 │
-├── 📄 Dockerfile-backend             # Docker configuration
-├── 📄 pom.xml                        # Maven dependencies
-└── 📄 .env                           # Environment variables
+├── 📄 pom.xml                        # Maven Dependencies
+├── 📄 Dockerfile-backend             # Docker Configuration
+└── 📄 .env                           # Environment Variables
+```
+
+## 🔐 Authentication & Security
+
+### JWT Token Flow
+
+```
+1. User Registration
+   POST /auth/register
+   └─→ Create user with hashed password → Return success
+
+2. User Login
+   POST /auth/login
+   └─→ Validate credentials → Generate JWT → Return token + username
+
+3. Protected Requests
+   GET /scores/** (with Bearer token)
+   └─→ JwtAuthFilter validates token → Extract user → Process request
+
+4. Token Validation
+   GET /auth/validate
+   └─→ Validate token → Return validity status + username
+```
+
+### Role-Based Access Control
+
+| Endpoint | Access |
+|----------|--------|
+| `/auth/**` | Public |
+| `/ws/**` | Public (WebSocket) |
+| `/notifications/**` | Public |
+| `/scores/**` | USER, ADMIN |
+| `/tournaments/**` | USER, ADMIN |
+| `/tournament-scores/**` | USER, ADMIN |
+| `/api/users/**` | Authenticated |
+
+## 📡 API Reference
+
+### Authentication
+
+#### Register User
+```http
+POST /auth/register
+Content-Type: application/json
+
+{
+  "username": "player1",
+  "password": "securePassword123"
+}
+```
+
+#### Login
+```http
+POST /auth/login
+Content-Type: application/json
+
+{
+  "username": "player1",
+  "password": "securePassword123"
+}
+
+Response:
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "username": "player1"
+}
+```
+
+#### Validate Token
+```http
+GET /auth/validate
+Authorization: Bearer <token>
+
+Response:
+{
+  "valid": true,
+  "username": "player1"
+}
+```
+
+### Scores
+
+#### Submit Score
+```http
+POST /scores/create
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "score": 15000
+}
+```
+
+#### Get Top 10 Leaderboard
+```http
+GET /scores/top10
+Authorization: Bearer <token>
+```
+
+#### Get User Scores
+```http
+GET /scores/user/{username}
+Authorization: Bearer <token>
+```
+
+### Tournaments
+
+#### Get All Active Tournaments
+```http
+GET /tournaments/all
+Authorization: Bearer <token>
+```
+
+#### Create Tournament
+```http
+POST /tournaments/create
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "name": "Weekly Championship"
+}
+```
+
+### Tournament Scores
+
+#### Submit Tournament Score
+```http
+POST /tournament-scores/create
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "tournamentId": 1,
+  "score": 25000
+}
+```
+
+#### Get Tournament Leaderboard
+```http
+GET /tournament-scores/tournament/{tournamentId}
+Authorization: Bearer <token>
+```
+
+## 🔔 Real-time Notifications (WebSocket)
+
+### Connection
+```javascript
+// Connect to WebSocket endpoint
+ws://localhost:8080/ws
+
+// Subscribe to notifications
+/topic/notifications
+```
+
+### Notification Payload
+```json
+{
+  "id": "uuid-string",
+  "message": "New tournament created!",
+  "type": "info",
+  "timestamp": "2026-02-03T10:30:00"
+}
 ```
 
 ## 🚀 Getting Started
@@ -153,7 +312,7 @@ Tetris2048TournementBE/
 
 - Java 21+
 - Maven 3.8+
-- PostgreSQL (or H2 for development)
+- PostgreSQL 15+ (or use H2 for development)
 - Docker (optional)
 
 ### Local Development
@@ -167,13 +326,10 @@ Tetris2048TournementBE/
 2. **Configure environment variables**
    ```bash
    # Create .env file or set environment variables
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_NAME=tetris2048
-   DB_USER=your_username
-   DB_PASSWORD=your_password
-   JWT_SECRET=your-256-bit-secret-key
-   JWT_EXPIRATION=86400000
+   export DB_NAME=tetris2048
+   export DB_USERNAME=postgres
+   export DB_PASSWORD=your_password
+   export JWT_SECRET=your_jwt_secret_key
    ```
 
 3. **Run with Maven**
@@ -181,143 +337,47 @@ Tetris2048TournementBE/
    ./mvnw spring-boot:run
    ```
 
-4. **Or build and run JAR**
-   ```bash
-   ./mvnw clean package
-   java -jar target/Tetris2048TournementBE-0.0.1-SNAPSHOT.jar
-   ```
+4. **Access the API**
+   - API: `http://localhost:8080`
+   - H2 Console (if enabled): `http://localhost:8080/h2-console`
 
 ### Docker Deployment
 
-```bash
-# Build the image
-docker build -f Dockerfile-backend -t tetris2048-backend .
+1. **Build the application**
+   ```bash
+   ./mvnw clean package -DskipTests
+   ```
 
-# Run the container
-docker run -p 8080:8080 \
-  -e DB_HOST=your-db-host \
-  -e DB_PASSWORD=your-password \
-  tetris2048-backend
-```
+2. **Build Docker image**
+   ```bash
+   docker build -f Dockerfile-backend -t tetris2048-backend .
+   ```
 
-## 📡 API Reference
+3. **Run with Docker Compose** (from parent project)
+   ```bash
+   docker-compose up
+   ```
 
-### Authentication Endpoints
+## ⚙️ Configuration
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| `POST` | `/auth/register` | Register new user | ❌ |
-| `POST` | `/auth/login` | Login & get JWT token | ❌ |
-| `GET` | `/auth/validate` | Validate JWT token | ❌ |
+### application.properties
 
-#### Register User
-```bash
-POST /auth/register
-Content-Type: application/json
+```properties
+# Database Configuration
+spring.datasource.url=jdbc:postgresql://localhost:5432/tetris2048
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
 
-{
-  "username": "player1",
-  "password": "securepassword"
-}
-```
+# JPA Configuration
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
 
-#### Login
-```bash
-POST /auth/login
-Content-Type: application/json
+# JWT Configuration
+security.jwt.secret-key=${JWT_SECRET}
+security.jwt.expiration-time=86400000  # 24 hours
 
-{
-  "username": "player1",
-  "password": "securepassword"
-}
-
-# Response
-{
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "username": "player1"
-}
-```
-
-### Tournament Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| `GET` | `/tournaments/all` | Get active tournaments | ✅ USER |
-| `POST` | `/tournaments/create` | Create new tournament | ✅ USER |
-
-### Score Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| `POST` | `/scores/create` | Submit a score | ✅ USER |
-| `GET` | `/scores/user/{username}` | Get user's scores | ✅ USER |
-| `GET` | `/scores/top10` | Get leaderboard | ✅ USER |
-
-### Tournament Score Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| `POST` | `/tournament-scores/create` | Submit tournament score | ✅ USER |
-| `GET` | `/tournament-scores/tournament/{id}` | Get tournament rankings | ✅ USER |
-
-### Notification Endpoints
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| `POST` | `/notifications/send` | Broadcast notification | ❌ |
-| `POST` | `/notifications/tournament-created` | Tournament alert | ❌ |
-
-## 🔌 WebSocket Integration
-
-### Connection Setup
-
-```javascript
-// Connect to WebSocket
-const socket = new SockJS('http://localhost:8080/ws');
-const stompClient = Stomp.over(socket);
-
-stompClient.connect({}, () => {
-  // Subscribe to notifications
-  stompClient.subscribe('/topic/notifications', (message) => {
-    const notification = JSON.parse(message.body);
-    console.log('Received:', notification);
-  });
-});
-```
-
-### Notification Payload
-
-```json
-{
-  "id": "uuid",
-  "message": "New tournament created!",
-  "type": "info",
-  "timestamp": "2026-02-03T10:30:00"
-}
-```
-
-## 🔐 Security Configuration
-
-### Role-Based Access Control
-
-| Endpoint Pattern | Required Role |
-|-----------------|---------------|
-| `/auth/**` | Public |
-| `/ws/**` | Public |
-| `/notifications/**` | Public |
-| `/scores/**` | USER, ADMIN |
-| `/tournaments/**` | USER, ADMIN |
-| `/tournament-scores/**` | USER, ADMIN |
-| `/api/users/**` | Authenticated |
-
-### JWT Token Structure
-
-```json
-{
-  "sub": "username",
-  "iat": 1738567890,
-  "exp": 1738654290
-}
+# Server Configuration
+server.port=8080
 ```
 
 ## 🗄️ Database Schema
@@ -325,69 +385,53 @@ stompClient.connect({}, () => {
 ### Entity Relationships
 
 ```
-┌─────────────┐       ┌─────────────────┐       ┌─────────────┐
-│    User     │───────│   Tournament    │       │    Score    │
-├─────────────┤  1:N  ├─────────────────┤       ├─────────────┤
-│ id          │       │ id              │       │ id          │
-│ username    │       │ name            │       │ score       │
-│ passwordHash│       │ created_by (FK) │       │ user_id (FK)│
-│ role        │       │ created_at      │       │ created_at  │
-└─────────────┘       └─────────────────┘       └─────────────┘
-      │                       │
-      │                       │ 1:N
-      │                       ▼
-      │               ┌──────────────────┐
-      └──────────────►│ TournamentScore  │
-           1:N        ├──────────────────┤
-                      │ id               │
-                      │ tournament_id(FK)│
-                      │ user_id (FK)     │
-                      │ score            │
-                      │ created_at       │
-                      └──────────────────┘
-```
-
-## ⚙️ Configuration
-
-### Application Properties
-
-| Property | Description | Default |
-|----------|-------------|---------|
-| `server.port` | Server port | `8080` |
-| `security.jwt.secret-key` | JWT signing key | - |
-| `security.jwt.expiration-time` | Token validity (ms) | `86400000` |
-| `spring.datasource.url` | Database URL | - |
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-./mvnw test
-
-# Run with coverage
-./mvnw test jacoco:report
+┌─────────────┐       ┌─────────────────┐       ┌──────────────────┐
+│    User     │       │   Tournament    │       │ TournamentScore  │
+├─────────────┤       ├─────────────────┤       ├──────────────────┤
+│ id (PK)     │──┐    │ id (PK)         │──┐    │ id (PK)          │
+│ username    │  │    │ name            │  │    │ tournament_id(FK)│
+│ passwordHash│  │    │ created_by (FK) │──┘    │ user_id (FK)     │
+│ role        │  │    │ created_at      │       │ score            │
+└─────────────┘  │    └─────────────────┘       │ created_at       │
+                 │                               └──────────────────┘
+                 │    ┌─────────────┐                    │
+                 │    │   Score     │                    │
+                 │    ├─────────────┤                    │
+                 └───▶│ id (PK)     │◀───────────────────┘
+                      │ user_id(FK) │
+                      │ score       │
+                      │ created_at  │
+                      └─────────────┘
 ```
 
 ## 🔗 Related Repositories
 
-This backend is part of the Tetris2048 Tournament ecosystem:
+This backend is part of the **Tetris 2048 Tournament** full-stack project:
 
-| Repository | Description |
-|------------|-------------|
-| [Tetris2048TournamentFE](https://github.com/H-Saglam/Tetris2048TournamentFE) | Vue.js Frontend |
-| [Tetris2048Tournament](https://github.com/H-Saglam/Tetris2048Tournament) | Python Game Engine |
+| Repository | Description | Tech Stack |
+|------------|-------------|------------|
+| [Tetris2048Tournament](https://github.com/H-Saglam/Tetris2048Tournament) | Main project (Docker Compose) | Docker, Git Submodules |
+| **Tetris2048TournementBE** (This Repo) | Backend API | Java, Spring Boot |
+| [Tetris2048TournamentFE](https://github.com/H-Saglam/Tetris2048TournamentFE) | Frontend Application | Vue.js, TypeScript |
 
-## 👤 Author
+## 🎯 Key Features
 
-**H-Saglam**
+- ✅ **Stateless JWT Authentication** - Secure token-based auth
+- ✅ **Role-Based Access Control** - USER and ADMIN roles
+- ✅ **Real-time WebSocket Notifications** - STOMP over WebSocket
+- ✅ **Tournament System** - Create and manage tournaments
+- ✅ **Leaderboard System** - Top 10 global and per-tournament rankings
+- ✅ **CORS Configuration** - Frontend integration ready
+- ✅ **Docker Support** - Easy deployment
+- ✅ **Clean Architecture** - Controller → Service → Repository pattern
 
-## 📄 License
+## 📝 License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is developed for educational purposes.
 
 ---
 
 <p align="center">
-  <b>Tetris2048 Tournament Backend</b><br>
-  Spring Boot | JWT Security | WebSocket | REST API
+  <b>Tetris 2048 Tournament Backend</b><br>
+  Spring Boot | JWT Security | WebSocket | PostgreSQL
 </p>
